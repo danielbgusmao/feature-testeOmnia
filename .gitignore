@@ -22,6 +22,7 @@ out/
 # Logs
 # =========================
 *.log
+src/Ambev.DeveloperEvaluation.WebApi/logs/
 
 # =========================
 # Environment
