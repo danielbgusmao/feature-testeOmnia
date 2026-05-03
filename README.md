@@ -4,7 +4,7 @@
 
 This project implements a Sales API following Clean Architecture principles using .NET 8, Entity Framework Core, and PostgreSQL.
 
-It supports full CRUD operations for sales and includes business rules for quantity-based discounts.
+The API allows full CRUD operations for sales and enforces business rules for quantity-based discounts.
 
 ---
 
@@ -14,7 +14,9 @@ It supports full CRUD operations for sales and includes business rules for quant
 * ASP.NET Core Web API
 * Entity Framework Core
 * PostgreSQL
-* xUnit (for tests)
+* MediatR
+* AutoMapper
+* xUnit
 
 ---
 
@@ -34,7 +36,7 @@ cd <repository-folder>
 Update the `appsettings.json` file in:
 
 ```
-Ambev.DeveloperEvaluation.WebApi
+src/Ambev.DeveloperEvaluation.WebApi
 ```
 
 ```json
@@ -48,8 +50,7 @@ Ambev.DeveloperEvaluation.WebApi
 ### 3. Apply database migrations
 
 ```bash
-dotnet ef migrations add InitialSales -p Ambev.DeveloperEvaluation.ORM -s Ambev.DeveloperEvaluation.WebApi
-dotnet ef database update -p Ambev.DeveloperEvaluation.ORM -s Ambev.DeveloperEvaluation.WebApi
+dotnet ef database update -p src/Ambev.DeveloperEvaluation.ORM -s src/Ambev.DeveloperEvaluation.WebApi
 ```
 
 ---
@@ -57,43 +58,88 @@ dotnet ef database update -p Ambev.DeveloperEvaluation.ORM -s Ambev.DeveloperEva
 ### 4. Run the API
 
 ```bash
-dotnet run --project Ambev.DeveloperEvaluation.WebApi
+dotnet run --project src/Ambev.DeveloperEvaluation.WebApi
 ```
 
 ---
 
-## 📦 Features
+### 5. Access Swagger
 
-* Create, update, delete and retrieve sales
-* Add and manage sale items
-* Cancel sales and individual items
-* Automatic discount calculation based on quantity:
+```
+https://localhost:<port>/swagger
+```
+
+---
+
+## 📦 Main Features
+
+* Create sales with multiple items
+* Automatic discount calculation:
 
   * 4–9 items: 10%
   * 10–20 items: 20%
-* Validation rules enforced in the domain layer
+* Prevent selling more than 20 identical items
+* Cancel sales and items (domain ready)
+* Clean Architecture (Domain, Application, Infrastructure, API)
 
 ---
 
-## 🧪 Running tests
+## 🧪 Example Request
 
-```bash
-dotnet test
+### POST /api/sales
+
+```json
+{
+  "saleNumber": "SALE-001",
+  "customerId": "11111111-1111-1111-1111-111111111111",
+  "customerName": "Daniel Customer",
+  "branchId": "22222222-2222-2222-2222-222222222222",
+  "branchName": "Main Branch",
+  "items": [
+    {
+      "productId": "33333333-3333-3333-3333-333333333333",
+      "productName": "Product A",
+      "quantity": 4,
+      "unitPrice": 100
+    }
+  ]
+}
 ```
 
 ---
 
-## 📚 Notes
+## 📊 Expected Behavior
 
-* External Identities pattern is used for Customer, Product, and Branch.
-* Discounts and business rules are implemented in the domain layer.
-* Logging simulates event publishing (SaleCreated, SaleModified, etc).
+| Quantity | Discount    |
+| -------- | ----------- |
+| 1–3      | 0%          |
+| 4–9      | 10%         |
+| 10–20    | 20%         |
+| >20      | Not allowed |
 
 ---
 
-## 🔥 Future improvements
+## 🧠 Architecture
 
-* Add message broker integration (RabbitMQ / Rebus)
-* Add pagination and filtering for queries
+* **Domain**: Business rules and entities
+* **Application**: Commands, Queries, Handlers
+* **ORM**: Entity Framework Core mappings
+* **WebApi**: Controllers and endpoints
+
+---
+
+## 🔥 Notes
+
+* External Identities pattern used (Customer, Product, Branch)
+* Discounts are calculated in the domain layer
+* Logging simulates event publishing (SaleCreated)
+
+---
+
+## 🚧 Future Improvements
+
+* Implement GET endpoints
+* Add cancel endpoints
+* Add pagination and filtering
 * Improve test coverage
-* Docker support
+* Add Docker support
