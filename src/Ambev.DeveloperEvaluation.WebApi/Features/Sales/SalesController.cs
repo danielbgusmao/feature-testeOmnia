@@ -6,10 +6,12 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CancelSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.UpdateSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.ListSales;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
 using Ambev.DeveloperEvaluation.Application.Sales.CancelSale;
 using Ambev.DeveloperEvaluation.Application.Sales.UpdateSale;
+using Ambev.DeveloperEvaluation.Application.Sales.ListSales;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales;
 
@@ -22,16 +24,19 @@ public class SalesController : BaseController
 {
     private readonly IMediator _mediator;
     private readonly IMapper _mapper;
+    private readonly ILogger<SalesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of SalesController
     /// </summary>
     /// <param name="mediator">The mediator instance</param>
     /// <param name="mapper">The AutoMapper instance</param>
-    public SalesController(IMediator mediator, IMapper mapper)
+    /// <param name="logger">The logger instance</param>
+    public SalesController(IMediator mediator, IMapper mapper, ILogger<SalesController> logger)
     {
         _mediator = mediator;
         _mapper = mapper;
+        _logger = logger;
     }
 
     /// <summary>
@@ -56,6 +61,42 @@ public class SalesController : BaseController
         };
 
         return Created($"/api/sales/{response.Id}", apiResponse);
+    }
+
+    /// <summary>
+    /// Lists all sales with optional pagination and filtering
+    /// </summary>
+    /// <param name="request">The list sales request with pagination and filter parameters</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Paginated list of sales</returns>
+    [HttpGet]
+    [ProducesResponseType(typeof(ListSalesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ListSales([FromQuery] ListSalesRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation(
+                "ListSales request received | Page: {Page} | PageSize: {PageSize} | StartDate: {StartDate} | EndDate: {EndDate}",
+                request.Page, request.PageSize, request.StartDate, request.EndDate);
+
+            var command = _mapper.Map<ListSalesCommand>(request);
+            
+            _logger.LogInformation(
+                "ListSalesCommand mapped | Page: {Page} | PageSize: {PageSize} | StartDate: {StartDate} | EndDate: {EndDate}",
+                command.Page, command.PageSize, command.StartDate, command.EndDate);
+
+            var result = await _mediator.Send(command, cancellationToken);
+
+            var response = _mapper.Map<ListSalesResponse>(result);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ListSales endpoint");
+            throw;
+        }
     }
 
     /// <summary>

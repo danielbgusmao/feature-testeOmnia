@@ -2,6 +2,8 @@
 using Ambev.DeveloperEvaluation.Domain.Exceptions;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using FluentValidation;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -110,10 +112,18 @@ namespace Ambev.DeveloperEvaluation.WebApi.Middleware
         /// </summary>
         private static Task HandleGenericExceptionAsync(HttpContext context, Exception exception, ILogger<ValidationExceptionMiddleware> logger)
         {
-            logger?.LogError(exception, "An unexpected error occurred");
+            logger?.LogError(exception, "An unexpected error occurred: {Message} | StackTrace: {StackTrace}", 
+                exception.Message, exception.StackTrace);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+            // Include detailed error info in development
+            var isDevelopment = context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+            
+            var errorDetail = isDevelopment 
+                ? $"{exception.Message} | {exception.InnerException?.Message}" 
+                : "An unexpected error occurred";
 
             var response = new ApiResponse
             {
@@ -124,7 +134,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Middleware
                     new ValidationErrorDetail 
                     { 
                         Error = "InternalServerError", 
-                        Detail = "An unexpected error occurred" 
+                        Detail = errorDetail
                     } 
                 }
             };
