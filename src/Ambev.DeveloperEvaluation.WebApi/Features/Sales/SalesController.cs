@@ -4,8 +4,10 @@ using AutoMapper;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.GetSale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.CancelSale;
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 using Ambev.DeveloperEvaluation.Application.Sales.GetSale;
+using Ambev.DeveloperEvaluation.Application.Sales.CancelSale;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales;
 
@@ -77,6 +79,33 @@ public class SalesController : BaseController
         var result = await _mediator.Send(command, cancellationToken);
 
         var response = _mapper.Map<GetSaleResponse>(result);
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// Cancels a sale by its ID
+    /// </summary>
+    /// <param name="id">The unique identifier of the sale to cancel</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cancelled sale details</returns>
+    [HttpPatch("{id}/cancel")]
+    [ProducesResponseType(typeof(CancelSaleResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelSale([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        if (id == Guid.Empty)
+            return BadRequest(new ApiResponse
+            {
+                Success = false,
+                Message = "Invalid sale ID"
+            });
+
+        var command = new CancelSaleCommand(id);
+        var result = await _mediator.Send(command, cancellationToken);
+
+        var response = _mapper.Map<CancelSaleResponse>(result);
 
         return Ok(response);
     }
