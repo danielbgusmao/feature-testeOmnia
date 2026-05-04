@@ -4,7 +4,7 @@
 
 This project implements a Sales API following Clean Architecture principles using .NET 8, Entity Framework Core, and PostgreSQL.
 
-The API allows full CRUD operations for sales and enforces business rules for quantity-based discounts.
+The API supports full sales lifecycle management, including creation, retrieval, and cancellation of sales, with business rules applied at the domain level.
 
 ---
 
@@ -33,10 +33,10 @@ cd <repository-folder>
 
 ### 2. Configure the database
 
-Update the `appsettings.json` file in:
+Update the connection string in:
 
-```
-src/Ambev.DeveloperEvaluation.WebApi
+```text
+src/Ambev.DeveloperEvaluation.WebApi/appsettings.json
 ```
 
 ```json
@@ -47,7 +47,7 @@ src/Ambev.DeveloperEvaluation.WebApi
 
 ---
 
-### 3. Apply database migrations
+### 3. Apply migrations
 
 ```bash
 dotnet ef database update -p src/Ambev.DeveloperEvaluation.ORM -s src/Ambev.DeveloperEvaluation.WebApi
@@ -66,27 +66,40 @@ dotnet run --project src/Ambev.DeveloperEvaluation.WebApi
 ### 5. Access Swagger
 
 ```
-https://localhost:<port>/swagger
+http://localhost:<port>/swagger
 ```
 
 ---
 
-## 📦 Main Features
+## 📦 Endpoints
 
-* Create sales with multiple items
-* Automatic discount calculation:
+### ➕ Create Sale
 
-  * 4–9 items: 10%
-  * 10–20 items: 20%
-* Prevent selling more than 20 identical items
-* Cancel sales and items (domain ready)
-* Clean Architecture (Domain, Application, Infrastructure, API)
+```http
+POST /api/sales
+```
+
+---
+
+### 🔍 Get Sale by ID
+
+```http
+GET /api/sales/{id}
+```
+
+---
+
+### ❌ Cancel Sale
+
+```http
+PATCH /api/sales/{id}/cancel
+```
 
 ---
 
 ## 🧪 Example Request
 
-### POST /api/sales
+### Create Sale
 
 ```json
 {
@@ -108,38 +121,60 @@ https://localhost:<port>/swagger
 
 ---
 
-## 📊 Expected Behavior
+## 📊 Business Rules
 
-| Quantity | Discount    |
-| -------- | ----------- |
-| 1–3      | 0%          |
-| 4–9      | 10%         |
-| 10–20    | 20%         |
-| >20      | Not allowed |
+### Discount Tiers
+
+| Quantity | Discount |
+| -------- | -------- |
+| 1–3      | 0%       |
+| 4–9      | 10%      |
+| 10–20    | 20%      |
+
+---
+
+### Restrictions
+
+* ❌ Maximum 20 items per product
+* ❌ No discount for less than 4 items
 
 ---
 
 ## 🧠 Architecture
 
-* **Domain**: Business rules and entities
-* **Application**: Commands, Queries, Handlers
-* **ORM**: Entity Framework Core mappings
-* **WebApi**: Controllers and endpoints
+The project follows Clean Architecture:
+
+* **Domain** → Business rules and entities
+* **Application** → Commands, Queries, Handlers
+* **ORM** → Entity Framework Core mappings
+* **WebApi** → Controllers and endpoints
 
 ---
 
-## 🔥 Notes
+## 🔥 Additional Features
 
-* External Identities pattern used (Customer, Product, Branch)
-* Discounts are calculated in the domain layer
-* Logging simulates event publishing (SaleCreated)
+* Domain-driven design (DDD)
+* Automatic discount calculation
+* Event simulation using logging:
+
+  * SaleCreated
+  * SaleCancelled
+* Validation at domain level
 
 ---
 
 ## 🚧 Future Improvements
 
-* Implement GET endpoints
-* Add cancel endpoints
-* Add pagination and filtering
-* Improve test coverage
-* Add Docker support
+* Implement item cancellation
+* Add pagination for listing sales
+* Add integration tests
+* Add authentication to secure endpoints
+* Docker support
+
+---
+
+## 💡 Notes
+
+* External Identities pattern is used (Customer, Product, Branch)
+* Business rules are enforced in the domain layer
+* The API uses MediatR to decouple application logic
