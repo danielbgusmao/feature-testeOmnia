@@ -78,11 +78,6 @@ public class SalesController : BaseController
 
         var response = _mapper.Map<GetSaleResponse>(result);
 
-        return Ok(new ApiResponseWithData<GetSaleResponse>
-        {
-            Success = true,
-            Message = "Sale retrieved successfully",
-            Data = response
-        });
+        return Ok(response);
     }
 }
