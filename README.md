@@ -157,6 +157,29 @@ GET /api/sales?page=1&pageSize=10&customerName=Daniel&orderBy=totalAmount&orderD
   ]
 }
 ```
+---
+
+## 📬 Postman Collection
+
+You can import the Postman collection to test all endpoints easily:
+
+👉 [Download Postman Collection](docs/Localhost.postman_collection.json)
+
+After importing, update the base URL if needed and run the requests.
+
+---
+
+### ⚠️ Notes
+
+* The collection includes:
+
+  * Create Sale
+  * Get Sale by Id
+  * Update Sale
+  * Cancel Sale
+  * List Sales (with filters and pagination)
+
+
 
 ---
 
