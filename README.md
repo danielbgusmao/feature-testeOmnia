@@ -4,7 +4,7 @@
 
 This project implements a Sales API following Clean Architecture principles using .NET 8, Entity Framework Core, and PostgreSQL.
 
-The API supports full sales lifecycle management, including creation, retrieval, and cancellation of sales, with business rules applied at the domain level.
+The API supports full sales lifecycle management, including creation, retrieval, update, cancellation, and listing of sales, with business rules applied at the domain level.
 
 ---
 
@@ -89,10 +89,49 @@ GET /api/sales/{id}
 
 ---
 
+### ✏️ Update Sale
+
+```http
+PATCH /api/sales/{id}
+```
+
+---
+
 ### ❌ Cancel Sale
 
 ```http
 PATCH /api/sales/{id}/cancel
+```
+
+---
+
+### 📄 List Sales (Pagination & Filters)
+
+```http
+GET /api/sales
+```
+
+#### Query Parameters
+
+* page (default: 1)
+* pageSize (default: 10, max: 100)
+* saleNumber
+* customerId
+* customerName
+* branchId
+* branchName
+* isCancelled
+* startDate
+* endDate
+* orderBy (saleDate, totalAmount, saleNumber, customerName, branchName)
+* orderDirection (asc, desc)
+
+---
+
+### 🔎 Example - List Sales
+
+```http
+GET /api/sales?page=1&pageSize=10&customerName=Daniel&orderBy=totalAmount&orderDirection=desc
 ```
 
 ---
@@ -158,15 +197,16 @@ The project follows Clean Architecture:
 * Event simulation using logging:
 
   * SaleCreated
+  * SaleModified
   * SaleCancelled
 * Validation at domain level
+* Pagination and filtering for listing sales
 
 ---
 
 ## 🚧 Future Improvements
 
 * Implement item cancellation
-* Add pagination for listing sales
 * Add integration tests
 * Add authentication to secure endpoints
 * Docker support
