@@ -145,7 +145,7 @@ public class Sale : BaseEntity
 
         if (existingItem is not null)
         {
-            existingItem.Update(existingItem.Quantity + quantity, unitPrice);
+            existingItem.Update(quantity, unitPrice);
         }
         else
         {
