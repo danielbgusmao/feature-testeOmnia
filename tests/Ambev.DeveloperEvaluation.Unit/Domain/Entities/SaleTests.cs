@@ -92,4 +92,37 @@ public class SaleTests
 
         Assert.Equal("Sale is already cancelled", exception.Message);
     }
+
+    [Fact]
+    public void Should_Update_Item_Quantity_And_Recalculate_Total()
+    {
+        var sale = CreateValidSale();
+
+        sale.AddItem(Guid.NewGuid(), "Product A", 4, 100);
+        var itemId = sale.Items.First().Id;
+
+        sale.UpdateItem(itemId, 10, 100);
+
+        var item = sale.Items.First();
+
+        Assert.Equal(10, item.Quantity);
+        Assert.Equal(0.20m, item.DiscountPercentage);
+        Assert.Equal(200m, item.DiscountAmount);
+        Assert.Equal(800m, item.TotalAmount);
+        Assert.Equal(800m, sale.TotalAmount);
+    }
+
+    [Fact]
+    public void Should_Not_Update_Item_When_Quantity_Is_Greater_Than_20()
+    {
+        var sale = CreateValidSale();
+
+        sale.AddItem(Guid.NewGuid(), "Product A", 4, 100);
+        var itemId = sale.Items.First().Id;
+
+        var exception = Assert.Throws<DomainException>(() =>
+            sale.UpdateItem(itemId, 21, 100));
+
+        Assert.Equal("Item quantity cannot exceed 20 units", exception.Message);
+    }
 }
