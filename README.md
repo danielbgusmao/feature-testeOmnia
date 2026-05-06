@@ -161,6 +161,8 @@ GET /api/sales?page=1&pageSize=10&customerName=Daniel&orderBy=totalAmount&orderD
 
 ## 📬 Postman Collection
 
+Manual tests were performed using Postman to validate all endpoints and business rules.
+
 You can import the Postman collection to test all endpoints easily:
 
 👉 [Download Postman Collection](docs/Localhost.postman_collection.json)
@@ -174,7 +176,7 @@ After importing, update the base URL if needed and run the requests.
 * The collection includes:
 
   * Create Sale
-  * Get Sale by Id
+  * Get Sale by ID
   * Update Sale
   * Cancel Sale
   * List Sales (with filters and pagination)
@@ -213,6 +215,18 @@ The project follows Clean Architecture:
 
 ---
 
+## ✅ What was implemented
+
+- Full CRUD for Sales
+- Pagination, filtering and sorting
+- Domain-driven business rules
+- Logging for domain events
+- Clean Architecture
+- PostgreSQL with EF Core migrations
+- Postman collection for manual testing
+
+---
+
 ## 🔥 Additional Features
 
 * Domain-driven design (DDD)
@@ -241,3 +255,4 @@ The project follows Clean Architecture:
 * External Identities pattern is used (Customer, Product, Branch)
 * Business rules are enforced in the domain layer
 * The API uses MediatR to decouple application logic
+
