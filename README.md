@@ -25,8 +25,8 @@ The API supports full sales lifecycle management, including creation, retrieval,
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/danielbgusmao/feature-testeOmnia.git
+cd feature-testeOmnia
 ```
 
 ---
@@ -157,6 +157,7 @@ GET /api/sales?page=1&pageSize=10&customerName=Daniel&orderBy=totalAmount&orderD
   ]
 }
 ```
+
 ---
 
 ## 📬 Postman Collection
@@ -168,20 +169,6 @@ You can import the Postman collection to test all endpoints easily:
 👉 [Download Postman Collection](docs/Localhost.postman_collection.json)
 
 After importing, update the base URL if needed and run the requests.
-
----
-
-### ⚠️ Notes
-
-* The collection includes:
-
-  * Create Sale
-  * Get Sale by ID
-  * Update Sale
-  * Cancel Sale
-  * List Sales (with filters and pagination)
-
-
 
 ---
 
@@ -217,13 +204,14 @@ The project follows Clean Architecture:
 
 ## ✅ What was implemented
 
-- Full CRUD for Sales
-- Pagination, filtering and sorting
-- Domain-driven business rules
-- Logging for domain events
-- Clean Architecture
-- PostgreSQL with EF Core migrations
-- Postman collection for manual testing
+* Full CRUD for Sales
+* Pagination, filtering and sorting
+* Domain-driven business rules
+* Logging for domain events
+* Clean Architecture
+* PostgreSQL with EF Core migrations
+* Postman collection for manual testing
+* Unit tests for domain rules and handlers
 
 ---
 
@@ -243,10 +231,12 @@ The project follows Clean Architecture:
 
 ## 🚧 Future Improvements
 
-* Implement item cancellation
-* Add integration tests
-* Add authentication to secure endpoints
-* Docker support
+* Implement item cancellation endpoint
+* Add integration tests for API endpoints and database persistence
+* Add authentication and authorization
+* Integrate a message broker such as Rebus or MassTransit
+* Add Docker support
+* Improve automated test coverage
 
 ---
 
@@ -255,4 +245,3 @@ The project follows Clean Architecture:
 * External Identities pattern is used (Customer, Product, Branch)
 * Business rules are enforced in the domain layer
 * The API uses MediatR to decouple application logic
-
