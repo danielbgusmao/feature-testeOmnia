@@ -1,5 +1,10 @@
 # Ambev Developer Evaluation - Sales API
 
+![.NET](https://img.shields.io/badge/.NET-8-blue)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Implemented-orange)
+![Rebus](https://img.shields.io/badge/Rebus-Integrated-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+
 ## 📌 Overview
 
 This project implements a Sales API following Clean Architecture principles using .NET 8, Entity Framework Core, and PostgreSQL.
@@ -53,7 +58,7 @@ The implementation was designed following Clean Architecture principles while ke
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/danielbgusmao/feature-testeOmnia.git
+git clone https://github.com/danielbgusmao/rabbitmq-event-driven-architecture.git
 cd feature-testeOmnia
 ```
 
