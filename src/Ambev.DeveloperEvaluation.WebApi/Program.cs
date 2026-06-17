@@ -9,6 +9,10 @@ using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Rebus.Config;
+using Ambev.DeveloperEvaluation.Application.Events;
+using Ambev.DeveloperEvaluation.Application.Events.Handlers;
+using Rebus.ServiceProvider;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -28,6 +32,19 @@ public class Program
 
             builder.AddBasicHealthChecks();
             builder.Services.AddSwaggerGen();
+            
+            builder.Services.AutoRegisterHandlersFromAssemblyOf<SaleCreatedEventHandler>();
+            builder.Services.AddRebus(
+            configure => configure
+                .Transport(t => t.UseRabbitMq(
+                    "amqp://guest:guest@localhost",
+                    "sales-queue")),
+            onCreated: async bus =>
+            {
+                await bus.Subscribe<SaleCreatedEvent>();
+                await bus.Subscribe<SaleModifiedEvent>();
+                await bus.Subscribe<SaleCancelledEvent>();
+            });
 
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
@@ -53,6 +70,7 @@ public class Program
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             var app = builder.Build();
+            
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())

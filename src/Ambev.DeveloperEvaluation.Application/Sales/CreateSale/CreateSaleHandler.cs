@@ -1,6 +1,8 @@
+using Ambev.DeveloperEvaluation.Application.Events;
+using Ambev.DeveloperEvaluation.Application.Abstractions.Persistence;
 using Ambev.DeveloperEvaluation.Domain.Exceptions;
 using Ambev.DeveloperEvaluation.Domain.Entities;
-using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -12,22 +14,25 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
 /// </summary>
 public class CreateSaleHandler : IRequestHandler<CreateSaleCommand, CreateSaleResult>
 {
-    private readonly DefaultContext _context;
+    private readonly ISaleRepository _saleRepository;
     private readonly ILogger<CreateSaleHandler> _logger;
     private readonly IMapper _mapper;
+    private readonly IEventPublisher _eventPublisher;
 
 
     /// <summary>
     /// Initializes a new instance of CreateSaleHandler.
     /// </summary>
-    /// <param name="context">The database context</param>
+    /// <param name="saleRepository">The sale repository</param>
     /// <param name="logger">The logger instance</param>
     /// <param name="mapper">The mapper instance</param>
-    public CreateSaleHandler(DefaultContext context, ILogger<CreateSaleHandler> logger, IMapper mapper)
+    /// <param name="eventPublisher">The event publisher instance</param>
+    public CreateSaleHandler(ISaleRepository saleRepository, ILogger<CreateSaleHandler> logger, IMapper mapper, IEventPublisher eventPublisher)
     {
-        _context = context;
+        _saleRepository = saleRepository;
         _logger = logger;
         _mapper = mapper;
+        _eventPublisher = eventPublisher;
     }
 
     /// <summary>
@@ -65,11 +70,17 @@ public class CreateSaleHandler : IRequestHandler<CreateSaleCommand, CreateSaleRe
                 item.UnitPrice);
         }
 
-        // Add the sale to the context and save changes
-        _context.Sales.Add(sale);
-        await _context.SaveChangesAsync(cancellationToken);
+        // Add the sale to the repository
+        await _saleRepository.CreateAsync(sale, cancellationToken);
 
-        _logger.LogInformation($"Event published: SaleCreated | SaleId: {sale.Id}");
+        // Publish event
+        var saleCreatedEvent = new SaleCreatedEvent
+        {
+            SaleId = sale.Id,
+            SaleNumber = sale.SaleNumber,
+            OccurredAt = DateTime.UtcNow
+        };
+        await _eventPublisher.PublishAsync(saleCreatedEvent, cancellationToken);
 
         return _mapper.Map<CreateSaleResult>(sale);
     }

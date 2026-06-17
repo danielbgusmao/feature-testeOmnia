@@ -1,5 +1,8 @@
 using Ambev.DeveloperEvaluation.Application.Sales.CreateSale;
+using Ambev.DeveloperEvaluation.Application.Events;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Repositories;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,8 +39,10 @@ public class CreateSaleHandlerTests
 
         var mapper = CreateMapper();
         var logger = Substitute.For<ILogger<CreateSaleHandler>>();
+        var eventPublisher = Substitute.For<IEventPublisher>();
+        var saleRepository = new SaleRepository(context);
 
-        var handler = new CreateSaleHandler(context, logger, mapper);
+        var handler = new CreateSaleHandler(saleRepository, logger, mapper, eventPublisher);
 
         var command = new CreateSaleCommand
         {

@@ -1,5 +1,5 @@
 using AutoMapper;
-using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.Application.Abstractions.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.ListSales;
 /// </summary>
 public class ListSalesHandler : IRequestHandler<ListSalesCommand, ListSalesResult>
 {
-    private readonly DefaultContext _context;
+    private readonly IDefaultContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<ListSalesHandler> _logger;
 
@@ -21,7 +21,7 @@ public class ListSalesHandler : IRequestHandler<ListSalesCommand, ListSalesResul
     /// <param name="context">The database context</param>
     /// <param name="mapper">The AutoMapper instance</param>
     /// <param name="logger">The logger instance</param>
-    public ListSalesHandler(DefaultContext context, IMapper mapper, ILogger<ListSalesHandler> logger)
+    public ListSalesHandler(IDefaultContext context, IMapper mapper, ILogger<ListSalesHandler> logger)
     {
         _context = context;
         _mapper = mapper;

@@ -6,6 +6,28 @@ This project implements a Sales API following Clean Architecture principles usin
 
 The API supports full sales lifecycle management, including creation, retrieval, update, cancellation, and listing of sales, with business rules applied at the domain level.
 
+The solution was evolved after technical feedback to include event publishing abstractions, retry policies with Polly, and a more decoupled architecture prepared for future asynchronous messaging integration.
+
+---
+# 🚀 Post-Interview Technical Enhancement – Event-Driven Architecture
+
+After completing the original challenge, I decided to further evolve the solution by implementing an asynchronous messaging layer using RabbitMQ and Rebus.
+
+The goal was to demonstrate how the application could evolve from a traditional request/response architecture to an event-driven architecture capable of supporting future integrations, scalability scenarios, and distributed processing.
+
+This enhancement includes:
+
+* RabbitMQ integration
+* Rebus message bus
+* Domain event publishing
+* Asynchronous event consumption
+* Retry policies using Polly
+* Structured event logging
+* Consumer handlers for domain events
+* Dockerized RabbitMQ environment
+
+The implementation was designed following Clean Architecture principles while keeping the Application layer decoupled from infrastructure concerns.
+
 ---
 
 ## 🚀 Technologies
@@ -16,7 +38,13 @@ The API supports full sales lifecycle management, including creation, retrieval,
 * PostgreSQL
 * MediatR
 * AutoMapper
+* Polly
+* RabbitMQ
+* Rebus
+* Serilog
 * xUnit
+* Bogus
+* NSubstitute
 
 ---
 
@@ -65,7 +93,7 @@ dotnet run --project src/Ambev.DeveloperEvaluation.WebApi
 
 ### 5. Access Swagger
 
-```
+```text
 http://localhost:<port>/swagger
 ```
 
@@ -188,17 +216,23 @@ After importing, update the base URL if needed and run the requests.
 
 * ❌ Maximum 20 items per product
 * ❌ No discount for less than 4 items
+* ❌ Cancelled sales cannot be updated
 
 ---
 
 ## 🧠 Architecture
 
-The project follows Clean Architecture:
+The project follows Clean Architecture principles with clear separation of concerns:
 
 * **Domain** → Business rules and entities
-* **Application** → Commands, Queries, Handlers
-* **ORM** → Entity Framework Core mappings
-* **WebApi** → Controllers and endpoints
+* **Application** → Commands, Queries, Handlers, Events and abstractions
+* **ORM** → Entity Framework Core mappings and infrastructure implementations
+* **WebApi** → Controllers and HTTP endpoints
+* **IoC** → Dependency injection and module registration
+
+The solution evolved after technical feedback to reduce coupling between layers by introducing abstractions for persistence and event publishing.
+
+Additionally, the application now supports asynchronous event-driven communication using RabbitMQ and Rebus.
 
 ---
 
@@ -207,11 +241,16 @@ The project follows Clean Architecture:
 * Full CRUD for Sales
 * Pagination, filtering and sorting
 * Domain-driven business rules
-* Logging for domain events
 * Clean Architecture
 * PostgreSQL with EF Core migrations
 * Postman collection for manual testing
 * Unit tests for domain rules and handlers
+* Event publishing abstraction
+* Retry policy for event publishing using Polly
+* RabbitMQ integration using Rebus
+* Asynchronous event publishing and consumption
+* Decoupled Application layer from ORM layer using abstractions
+* Structured logging with Serilog
 
 ---
 
@@ -219,13 +258,157 @@ The project follows Clean Architecture:
 
 * Domain-driven design (DDD)
 * Automatic discount calculation
-* Event simulation using logging:
-
-  * SaleCreated
-  * SaleModified
-  * SaleCancelled
 * Validation at domain level
 * Pagination and filtering for listing sales
+* Resilient event publishing with Polly retry policies
+* Asynchronous communication using RabbitMQ and Rebus
+* Event-driven architecture implementation
+
+### Published Events
+
+* SaleCreatedEvent
+* SaleModifiedEvent
+* SaleCancelledEvent
+
+### Event Consumers
+
+* SaleCreatedEventHandler
+* SaleModifiedEventHandler
+* SaleCancelledEventHandler
+
+### Event Flow
+
+```text id="0ykqvi"
+CreateSale → EventPublisher → RabbitMQ → Consumer Handler
+UpdateSale → EventPublisher → RabbitMQ → Consumer Handler
+CancelSale → EventPublisher → RabbitMQ → Consumer Handler
+```
+
+---
+
+## 📡 Event-Driven Architecture
+
+The application publishes and consumes domain events asynchronously using RabbitMQ and Rebus.
+
+Implemented flow:
+
+```text id="g4c0mg"
+Controller
+ ↓
+Mediator.Send(command)
+ ↓
+Handler
+ ↓
+Domain
+ ↓
+Repository
+ ↓
+Database
+ ↓
+EventPublisher
+ ↓
+Rebus
+ ↓
+RabbitMQ
+ ↓
+Queue
+ ↓
+Consumer Handler
+```
+
+Implemented consumers:
+
+* SaleCreatedEventHandler
+* SaleModifiedEventHandler
+* SaleCancelledEventHandler
+
+The architecture supports future scalability and distributed communication patterns while keeping the main API flow decoupled and resilient.
+
+---
+
+## 📷 Implementation Evidence
+
+### Sale Creation Request
+
+![Create Sale](docs/images/create-sale.png)
+
+Demonstrates successful sale creation through the API endpoint.
+
+---
+
+### Sale Query with Pagination and Filters
+
+![Get Sales](docs/images/get-sales.png)
+
+Demonstrates retrieval of persisted sales using pagination, filtering and sorting.
+
+---
+
+### Event Publishing and Retry Policy
+
+![Event Publisher](docs/images/event-publisher.png)
+
+Shows the event publishing workflow and retry strategy implementation using Polly.
+
+---
+
+### Event Consumption
+
+![Event Consumer](docs/images/event-consumer.png)
+
+Shows asynchronous consumption of the SaleCreatedEvent through Rebus.
+
+---
+
+### RabbitMQ Queue
+
+![RabbitMQ Queue](docs/images/rabbitmq-queue.png)
+
+Queue monitoring through RabbitMQ Management UI.
+
+---
+
+### Docker Environment
+
+![Docker RabbitMQ](docs/images/docker-rabbitmq.png)
+
+RabbitMQ running inside a Docker container.
+
+---
+
+### End-to-End Flow Validation
+
+![End To End](docs/images/end-to-end.png)
+
+Evidence of successful persistence, event publication and asynchronous processing.
+
+
+---
+
+## 🧪 Tests
+
+The solution includes unit tests for:
+
+* Domain entities
+* Business rules
+* Discount calculations
+* Quantity restrictions
+* Handlers
+* Event publishing flow
+* Retry policy behavior
+
+Tools used:
+
+* xUnit
+* Bogus
+* NSubstitute
+* EF Core InMemory
+
+Run tests:
+
+```bash
+dotnet test .\Ambev.DeveloperEvaluation.sln
+```
 
 ---
 
@@ -233,10 +416,12 @@ The project follows Clean Architecture:
 
 * Implement item cancellation endpoint
 * Add integration tests for API endpoints and database persistence
-* Add authentication and authorization
-* Integrate a message broker such as Rebus or MassTransit
-* Add Docker support
+* Add authentication and authorization with JWT Bearer
+* Add Docker Compose orchestration
 * Improve automated test coverage
+* Add distributed tracing and monitoring
+* Add dead-letter queue strategy for failed events
+* Add observability dashboards for asynchronous flows
 
 ---
 
@@ -245,3 +430,22 @@ The project follows Clean Architecture:
 * External Identities pattern is used (Customer, Product, Branch)
 * Business rules are enforced in the domain layer
 * The API uses MediatR to decouple application logic
+* Retry policies are implemented using Polly
+* RabbitMQ and Rebus are used for asynchronous event-driven communication
+* Structured logging was implemented to improve observability
+* The architecture was designed to support future scalability and distributed systems patterns
+
+## 🎯 Why This Enhancement Was Added
+
+Although asynchronous messaging was not a mandatory requirement of the original challenge, this enhancement was implemented to demonstrate how the solution could be extended in a real-world enterprise environment.
+
+By introducing RabbitMQ and Rebus, the application is now prepared for:
+
+* Service decoupling
+* Distributed processing
+* Event-driven integrations
+* Improved scalability
+* Resilience through retry policies
+* Future microservices adoption
+
+This implementation was developed as a proactive technical improvement after the interview process.

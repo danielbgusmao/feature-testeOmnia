@@ -1,8 +1,8 @@
 using AutoMapper;
+using Ambev.DeveloperEvaluation.Application.Events;
 using Ambev.DeveloperEvaluation.Domain.Exceptions;
-using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.Domain.Repositories;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale;
@@ -12,21 +12,24 @@ namespace Ambev.DeveloperEvaluation.Application.Sales.UpdateSale;
 /// </summary>
 public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleResult>
 {
-    private readonly DefaultContext _context;
+    private readonly ISaleRepository _saleRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<UpdateSaleHandler> _logger;
+    private readonly IEventPublisher _eventPublisher;
 
     /// <summary>
     /// Initializes a new instance of UpdateSaleHandler
     /// </summary>
-    /// <param name="context">The database context</param>
+    /// <param name="saleRepository">The sale repository</param>
     /// <param name="mapper">The AutoMapper instance</param>
     /// <param name="logger">The logger instance</param>
-    public UpdateSaleHandler(DefaultContext context, IMapper mapper, ILogger<UpdateSaleHandler> logger)
+    /// <param name="eventPublisher">The event publisher instance</param>
+    public UpdateSaleHandler(ISaleRepository saleRepository, IMapper mapper, ILogger<UpdateSaleHandler> logger, IEventPublisher eventPublisher)
     {
-        _context = context;
+        _saleRepository = saleRepository;
         _mapper = mapper;
         _logger = logger;
+        _eventPublisher = eventPublisher;
     }
 
     /// <summary>
@@ -40,9 +43,7 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
     /// </exception>
     public async Task<UpdateSaleResult> Handle(UpdateSaleCommand request, CancellationToken cancellationToken)
     {
-        var sale = await _context.Sales
-            .Include(s => s.Items)
-            .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
+        var sale = await _saleRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (sale == null)
             throw new DomainException($"Sale with ID {request.Id} not found");
@@ -87,9 +88,16 @@ public class UpdateSaleHandler : IRequestHandler<UpdateSaleCommand, UpdateSaleRe
         }
 
         // Save changes
-        await _context.SaveChangesAsync(cancellationToken);
+        await _saleRepository.UpdateAsync(sale, cancellationToken);
 
-        _logger.LogInformation("Event published: SaleModified | SaleId: {SaleId}", sale.Id);
+        // Publish event
+        var saleModifiedEvent = new SaleModifiedEvent
+        {
+            SaleId = sale.Id,
+            SaleNumber = sale.SaleNumber,
+            OccurredAt = DateTime.UtcNow
+        };
+        await _eventPublisher.PublishAsync(saleModifiedEvent, cancellationToken);
 
         return _mapper.Map<UpdateSaleResult>(sale);
     }
